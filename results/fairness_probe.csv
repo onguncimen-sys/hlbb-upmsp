@@ -1,0 +1,10 @@
+key,value,unit,size,note
+sa_scan_us,0.55,mikrosaniye,800x30,"SA ic dongusundeki bagimsiz is obegi (aday hamle taramasi); scratchpad/sacount grain.jl, 100k tekrar"
+jl_dispatch_us,40.13,mikrosaniye,-,"BOS Threads.@threads bolgesi, 12 is parcacigi, 10k tekrar"
+hlbb_lkh_ms,10.2,milisaniye,800x30,bir LKH rotalama cagrisi; arsivlenmis HLBB cozumunun makine-is dagilimi (results/solutions/800_30_nv21_b200.json)
+abandon_max_pct,2.8,yuzde,50x10,"uygunluk yuzunden vazgecilen hamle orani, EN YUKSEK boyut; sayacli SA kopyasi, 8 boyut x 40s"
+abandon_big_pct,0.1,yuzde,400x20+,en buyuk dort boyutta ust sinir (olculen: 0.0/0.0/0.0/0.2)
+regime_tol_pct,5,yuzde,150x15,"kisitli/kisitsiz kosu farki: delta dagilimi, kabul orani, sogutma adimi (124/121/118 ort, 12/11/11 sogutma)"
+budget_solver_lo_pct,79,yuzde,800x30,"HLBB butcesinin Gurobi+LKH icinde gecen payi, en dusuk (Python %17.4)"
+budget_solver_hi_pct,92,yuzde,100x15,"ayni pay, en yuksek (Python %5.7)"
+regime_worsen_pct,1.0,yuzde,150x15,kotulesen hamle onerme orani: kisit kapali %83.1 -> acik %82.3 (fark %1.0). ONCEKI ucuncu buyukluk KABUL ORANI idi ve %5 esigini TUTMUYORDU (%0.02 -> %0.03 = oransal %50); mutlak fark yuz binde bir ama iddia oransaldi.

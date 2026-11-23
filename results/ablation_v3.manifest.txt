@@ -1,0 +1,2 @@
+2026-10-16 12:33:35 track=niche_v2 git=a924dea budget=200s reps=3 kol=14 tohum=sabit0(tekrarlar ayni tohum altindaki kosudan-kosuya oynakligi olcer) bekleyen=1008
+2026-10-18 17:34:58 track=niche_v2 git=a924dea budget=200s reps=3 kol=14 tohum=sabit0(tekrarlar ayni tohum altindaki kosudan-kosuya oynakligi olcer) bekleyen=46

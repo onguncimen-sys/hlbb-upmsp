@@ -1,0 +1,7 @@
+# Environment used for the published runs (single machine; see ENVIRONMENT.md).
+# Python 3.14.4
+pandas==3.0.3
+numpy==2.4.6
+scipy==1.18.0
+gurobipy==13.0.2      # Gurobi licence required for solve-time use
+docplex==2.32.264     # IBM CP Optimizer 22.2 engine required for CP runs

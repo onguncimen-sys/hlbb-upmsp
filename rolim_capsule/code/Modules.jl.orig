@@ -1,0 +1,63 @@
+#=
+This file is used to modularize each metaheuristic to have its own global environment 
+=#
+
+module ALNS
+    include("/code/Algorithms/ALNS-TS/ALNS-TS.jl")
+    export Main_ALNS
+end
+
+module FACL 
+    include("/code/Algorithms/FACL/FACL.jl")
+    export Main_FACL
+end
+
+module FSS
+    include("/code/Algorithms/FSS/FSS.jl")
+    export Main_FSS
+end
+
+module GA
+    include("/code/Algorithms/GA/GA.jl")
+    export Main_GA
+end
+
+module GALA
+    include("/code/Algorithms/GALA/GALA.jl")
+    export Main_GALA
+end
+
+module HABC 
+    include("/code/Algorithms/HABC/HABC.jl")
+    export Main_HABC
+end
+
+module HGA
+    include("/code/Algorithms/HGA/HGA.jl")
+    export Main_HGA
+end
+
+module MSA
+    include("/code/Algorithms/MSA/MultiStart.jl")
+    export Main_MSA
+end
+
+module SA 
+    include("/code/Algorithms/SA/SA.jl")
+    export Main_SA 
+end
+
+module SSAFA
+    include("/code/Algorithms/SSAFA/SSAFA.jl")
+    export Main_SSAFA 
+end
+
+module VNSaiNet 
+    include("/code/Algorithms/VNS-AiNet/VNS-aiNet.jl")
+    export Main_VNS
+end
+
+module WOAFA
+    include("/code/Algorithms/WOAFA/WOAFA.jl")
+    export Main_WOAFA
+end

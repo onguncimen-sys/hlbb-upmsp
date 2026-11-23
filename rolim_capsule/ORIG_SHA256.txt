@@ -1,0 +1,9 @@
+21f3825e154cb59ff2dce50d82e9f3cc30bc35bd1a051451eabc0176bc7e81ce  code/Algorithms/SA/SA.jl.orig
+f6900aa655283122a4f567a31f0d62152feb68967008e57282639a7fbecdd417  code/Algorithms/HGA/HGA.jl.orig
+f94f37c3e8b865870076a1c3981f62d42cfec6ef870fded4a0c2376907d5f983  code/Algorithms/GA/GA.jl.orig
+eebc927f5ffa3ff869ec983465e15de53fe4c82ac7cdf8f673cc261b3001bd92  code/run_one.jl.orig
+05cebb0b37db7d4c933d774916f8a9fef9335db5a61e03aa8aba426d38f817d6  code/Modules.jl.orig
+# Saf CodeOcean indirmesi (capsule-3793251.zip):
+# 8461ae3614ca8602cc45ed43cee58d5ea07b143974f2d7ec31e8626a04b77f0f
+# NOT: SA/HGA/GA .orig dosyalari Katman-1 taban anlik goruntuleridir (saf degil);
+# ayrinti MODIFICATIONS.md "Change layers".

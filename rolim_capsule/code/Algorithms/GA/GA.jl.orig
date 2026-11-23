@@ -1,0 +1,572 @@
+#=
+* Implementation of the Genetic Algorithm of Vallada & Ruiz
+* European Journal of Operational Research 211 (2011) 612–622
+* Problem: Unrelated parallel machine scheduling with sequence-dependent setup times
+* Objective: Makespan
+* Coded by Gustavo Alencar Rolim - Universidade de São Paulo (2022/2023)
+=#
+
+using Random, StatsBase
+
+mutable struct Ind
+    Sol::Vector{Vector{Int16}}
+    OF::Vector{Int32}
+    Fit::Int32 
+
+    Ind() = new(Vector{Vector{Int16}}[], Vector{Int32}[], 0)
+end
+
+function Makespan(m::Int8, p::Matrix{Int16}, S::Vector{Matrix{Int16}},
+    sol::Vector{Vector{Int16}})
+    #----- Calculates the makespan of a solution
+
+    Cmax::Int32 = 0
+
+    for i in 1:m
+        size::Int16 = length(sol[i])
+        Ct::Int16 = 0 
+
+        for j::Int16 in eachindex(sol[i])
+            if j != size
+                Ct += p[i, sol[i][j]] + S[i][sol[i][j], sol[i][j+1]]
+            else
+                Ct += p[i, sol[i][j]]
+            end
+        end
+
+        if Ct > Cmax
+            Cmax = Ct
+        end
+    end
+    
+    return(Cmax)
+end
+
+function MachineSpan(M::Int8, p::Matrix{Int16}, S::Vector{Matrix{Int16}},
+    sol::Vector{Vector{Int16}})
+    #----- Calculates the span of a given machine 
+
+    Ct::Int32 = 0
+    size::Int16 = length(sol[M])
+
+    for i::Int16 in 1:size
+        if i != size
+            Ct += p[M, sol[M][i]] + S[M][sol[M][i], sol[M][i+1]]
+        else
+            Ct += p[M, sol[M][i]]
+        end
+    end
+    
+    return(Ct)
+end
+
+function Modified_p(m::Int8, n::Int16, p::Matrix{Int16},
+    S::Vector{Matrix{Int16}})
+    #----- Returns an ordered list according to the Modified Processing Times (Kurz and Azkin)
+
+    MP = zeros(Int16, m, n)
+    U = collect(Int16, 1:n)
+
+    for j::Int16 in 1:n
+        for i::Int8 in 1:m
+            MinP::Int16 = 9999
+
+            for k::Int16 in 1:n
+                if j != k 
+                    if S[i][j, k] < MinP
+                        MinP = S[i][j, k]
+                    end
+                end
+            end
+
+            MP[i, j] = p[i, j] + MinP
+        end
+    end
+
+    #----- Calculates the average processing times
+
+    AVGP = zeros(Float16, n)
+
+    for j::Int16 in 1:n
+        for i::Int8 in 1:m
+            AVGP[j] += MP[i, j]
+        end
+
+        AVGP[j] /= m
+    end
+
+    sort!(U, by = j -> AVGP[j], rev = true)
+    
+    return(U)
+end
+
+function MI_heuristic(m::Int8, n::Int16, p::Matrix{Int16},
+    S::Vector{Matrix{Int16}}, rule::Bool)
+    #----- Generates a solution according to the MI heuristic
+
+    sol = Vector{Int16}[[] for i in 1:m]
+
+    #----- Rule selects whether the initial assignement rule is used or not
+
+    if rule == true
+        U = Modified_p(m, n, p, S)
+    else
+        U = shuffle!(collect(Int16, 1:n))
+    end
+
+    while length(U) != 0
+        job = U[1]
+        best_Cmax::Int32 = 999999
+        best_pos::Int16 = 0
+        best_mach::Int8 = 0
+    
+        for i::Int8 in 1:m
+            last::Int16 = length(sol[i])+1
+    
+            for k::Int16 in 1:last
+                insert!(sol[i], k, job)
+                PCmax = Makespan(m, p, S, sol)
+    
+                if PCmax < best_Cmax
+                    best_Cmax = PCmax
+                    best_pos = k
+                    best_mach = i
+                end
+    
+                deleteat!(sol[i], k)
+            end
+        end
+            
+        insert!(sol[best_mach], best_pos, job)
+        popfirst!(U)
+    end
+    
+    return(sol)
+end
+
+function Init_Pop(Psize::Int8, m::Int8, n::Int16, p::Matrix{Int16},
+    S::Vector{Matrix{Int16}})
+    #----- Initializes the population
+
+    POP = Ind[]
+
+    for i::Int8 in 1:Psize
+        push!(POP, Ind())
+
+        if i == 1 
+            POP[i].Sol = MI_heuristic(m, n, p, S, true)
+            POP[i].OF = zeros(Int32, m)
+        else
+            POP[i].Sol = MI_heuristic(m, n, p, S, false)
+            POP[i].OF = zeros(Int32, m)
+        end
+
+        for j::Int8 in 1:m 
+            POP[i].OF[j] = MachineSpan(j, p, S, POP[i].Sol)
+        end
+
+        POP[i].Fit = maximum(POP[i].OF)
+    end
+
+    return(POP)
+end
+
+function DeltaIns(O::Ind, MR::Int8, MI::Int8, PR::Int16, PI::Int16, 
+    p::Matrix{Int16}, S::Vector{Matrix{Int16}})
+    #----- Fast calculation of the machine span in the insertion neighborhood
+
+    Cbi::Int32 = O.OF[MR] # Cost before insertion of machine i (job removal)
+    Cbj::Int32 = O.OF[MI] # Cost before insertion of machine j (job insertion)
+    Cai::Int32 = Cbi # Cost after insertion of machine i (job removal)
+    Caj::Int32 = Cbj # Cost after insertion of machine j (job insertion)
+    J::Int16 = O.Sol[MR][PR] # Job to be removed and then inserted
+    SR::Int16 = length(O.Sol[MR]) # Length of the busiest machine 
+    SI::Int16 = length(O.Sol[MI]) # Length of the machine with a lower span
+
+    #----- Calculates the new span after job removal on the busiest machine
+    
+    if SR > 1
+        if PR == 1
+            Cai -= p[MR, J] + S[MR][J, O.Sol[MR][PR+1]]
+        elseif PR == SR
+            Cai -= S[MR][O.Sol[MR][PR-1], J] + p[MR, J]
+        else
+            Cai -= S[MR][O.Sol[MR][PR-1], J] + p[MR, J] + S[MR][J, O.Sol[MR][PR+1]]
+            Cai += S[MR][O.Sol[MR][PR-1], O.Sol[MR][PR+1]]
+        end
+    else
+        Cai -= p[MR, J]
+    end
+
+    #----- Calculates the new span after job insertion on the machine with a lower span
+
+    if SI >= 1
+        if PI == 1
+            Caj += p[MI, J] + S[MI][J, O.Sol[MI][1]]
+        elseif PI == SI+1
+            Caj += S[MI][O.Sol[MI][PI-1], J] + p[MI, J]
+        else
+            Caj += S[MI][O.Sol[MI][PI-1], J] + p[MI, J] + S[MI][J, O.Sol[MI][PI]]
+        end
+    else
+        Caj += p[MI, J]
+    end
+
+    #----- Evaluates the move
+
+    a::Int32 = 0
+
+    if max(Cbi, Cbj) > max(Cai, Caj) 
+        a = (Cbi - Cai) + (Cbj - Caj)
+    end
+    
+    return(a)
+end
+
+function ExecuteIns(O::Ind, MR::Int8, MI::Int8, PR::Int16, PI::Int16,
+    p::Matrix{Int16}, S::Vector{Matrix{Int16}})
+    #----- Executes the insertion movement
+
+    JOB::Int16 = O.Sol[MR][PR]
+    deleteat!(O.Sol[MR], PR)
+    insert!(O.Sol[MI], PI, JOB)
+
+    #----- Updates the spans
+
+    O.OF[MR] = MachineSpan(MR, p, S, O.Sol)
+    O.OF[MI] = MachineSpan(MI, p, S, O.Sol)
+    O.Fit = maximum(O.OF)
+end
+
+function Insertion(O::Ind, m::Int8, p::Matrix{Int16}, 
+    S::Vector{Matrix{Int16}})
+    #----- Insertion neighborhood
+
+    l = sortperm(O.OF, rev = true) # Sorts the machines in descending order
+    MR::Int8 = l[1] # Index of the busiest machine (contains the jobs to be removed)
+    M::Int8 = 0 # Machine to insert the selcted job
+    PR::Int16 = 0 # Removal position 
+    PI::Int16 = 0 # Insertion position 
+    iprv::Bool = false
+    eval::Int64 = 0
+        
+    for i::Int8 in 2:m
+        MI::Int8 = l[i] # Index of sub-neighborhoods to insert jobs
+        size::Int16 = length(O.Sol[MI])+1
+           
+        for j::Int16 in eachindex(O.Sol[MR])
+            for k::Int16 in 1:size
+    
+                a = DeltaIns(O, MR, MI, j, k, p, S)
+                eval += 1
+
+                if a != 0 
+                    PR = j 
+                    PI = k
+                    M = MI
+                    iprv = true
+
+                    if iprv == true 
+                        break
+                    end
+                end
+            end
+
+            if iprv == true
+                break
+            end
+        end
+    
+        if iprv == true
+            ExecuteIns(O, MR, M, PR, PI, p, S)
+            eval += 2
+            break
+        end
+    end
+    
+    return(iprv, eval)
+end
+
+function IMI_LS(Pls::Float16, m::Int8, p::Matrix{Int16},
+    S::Vector{Matrix{Int16}}, O::Ind)
+    #----- Apply the inter-machine insertion neighborhood (IMI)
+    eval::Int64 = 0
+
+    if rand(Float16) <= Pls
+        iprv::Bool = true
+
+        while iprv == true
+            iprv, ev = Insertion(O, m, p, S)
+            eval += ev
+        end
+    end
+
+    return(eval)
+end
+
+function Selection(POP::Vector{Ind}, Pressure::Int8, Psize::Int8)
+    #----- Tournament selection 
+
+    L = sample(1:Psize, Pressure, replace = false)
+    MIN::Int32 = 999999
+    IND::Int8 = 0
+
+    for i::Int8 in 1:Pressure
+        if POP[L[i]].Fit < MIN
+            MIN = POP[L[i]].Fit
+            IND = L[i]
+        end
+    end
+    
+    return(IND)
+end
+
+function PartialLS(MJ::Vector{Vector{Int16}}, O::Vector{Vector{Int16}}, m::Int8, 
+    p::Matrix{Int16}, S::Vector{Matrix{Int16}})
+    #----- Adds missing jobs with a partial local search
+
+    OF = zeros(Int32, m)
+    eval::Int64 = 0
+
+    for i::Int8 in 1:m 
+        size::Int16 = length(MJ[i])
+        isize::Int16 = length(O[i])+1
+
+        while size != 0
+            POS::Int16 = 0
+            B::Int32 = 999999999
+
+            for j in eachindex(MJ[i])
+                for k in 1:isize 
+                    insert!(O[i], k, MJ[i][1])
+                    Cmax::Int32 = MachineSpan(i, p, S, O)
+                    eval += 1
+
+                    if Cmax < B 
+                        B = Cmax
+                        POS = k
+                    end
+
+                    deleteat!(O[i], k)
+                end
+            end
+            
+            insert!(O[i], POS, MJ[i][1])
+            popfirst!(MJ[i])
+            isize += 1
+            size -= 1
+        end
+    end
+
+    for i::Int8 in 1:m 
+        OF[i] = MachineSpan(i, p, S, O)
+        eval += 1
+    end
+
+    return(OF, eval)
+end
+
+function CrossOver(POP::Vector{Ind}, Pc::Float16, Pressure::Int8, Psize::Int8, m::Int8,
+    p::Matrix{Int16}, S::Vector{Matrix{Int16}})
+    #----- Generates a new offspring
+
+    P1 = Selection(POP, Pressure, Psize)
+    P2 = Selection(POP, Pressure, Psize)
+    eval::Int64 = 0
+
+    if rand(Float16) <= Pc
+        O1 = Ind()
+        O2 = Ind()
+        O1.Sol = Vector{Int16}[[] for i in 1:m]
+        O2.Sol = Vector{Int16}[[] for i in 1:m]
+
+        #----- Copy jobs from P1
+
+        for i in 1:m
+            size::Int16 = length(POP[P1].Sol[i])
+
+            if size > 0 
+                COP::Int16 = rand(1:size)
+                O1.Sol[i] = deepcopy(POP[P1].Sol[i][1:COP])
+                O2.Sol[i] = deepcopy(POP[P1].Sol[i][COP+1:size])
+            end
+        end
+
+        #----- Finds missing jobs
+
+        E1 = reduce(vcat, O1.Sol)
+        E2 = reduce(vcat, O2.Sol)
+        MJ1 = Vector{Int16}[[] for i in 1:m]
+        MJ2 = Vector{Int16}[[] for i in 1:m]
+
+        for i in 1:m 
+            for j in POP[P2].Sol[i]
+                if !(j in E1)
+                    push!(MJ1[i], j)
+                end
+                if !(j in E2)
+                    push!(MJ2[i], j)
+                end 
+            end
+        end
+
+        #----- Adds missing jobs 
+
+        O1.OF, ev = PartialLS(MJ1, O1.Sol, m, p, S)
+        eval += ev
+        O2.OF, ev = PartialLS(MJ2, O2.Sol, m, p, S)
+        eval += ev
+        O1.Fit = maximum(O1.OF)
+        O2.Fit = maximum(O2.OF)
+
+    else
+        O1 = deepcopy(POP[P1])
+        O2 = deepcopy(POP[P2])
+    end
+
+    return(O1, O2, eval)
+end
+
+function ShiftJob(O::Vector{Vector{Int16}}, m::Int8)
+    #---- Shifts a job from a position to another
+
+    mach::Int8 = rand(1:m)
+
+    while length(O[mach]) <= 1
+        mach = rand(1:m)
+    end
+
+    pos::Int16 = rand(1:length(O[mach]))
+    job::Int16 = O[mach][pos]
+    deleteat!(O[mach], pos)
+    pos_ins::Int16 = rand(1:length(O[mach])+1)
+
+    while pos_ins == pos
+        pos_ins = rand(1:length(O[mach])+1)
+    end
+
+    insert!(O[mach], pos_ins, job)
+end
+
+function Mutation(O1::Ind, O2::Ind, Pm::Float16, m::Int8,
+    p::Matrix{Int16}, S::Vector{Matrix{Int16}})
+    #----- Performs mutation 
+    eval::Int64 = 0
+
+    if rand(Float16) <= Pm
+        ShiftJob(O1.Sol, m)
+
+        for i::Int8 in 1:m 
+            O1.OF[i] = MachineSpan(i, p, S, O1.Sol)
+            eval += 1
+        end
+
+        O1.Fit = maximum(O1.OF)
+    end 
+
+    if rand(Float16) <= Pm
+        ShiftJob(O2.Sol, m)
+
+        for i::Int8 in 1:m 
+            O2.OF[i] = MachineSpan(i, p, S, O2.Sol)
+            eval += 1
+        end
+
+        O2.Fit = maximum(O2.OF)
+    end
+
+    return(eval)
+end
+
+function UpdatePopulation(O::Ind, POP::Vector{Ind}, Psize::Int8)
+    #----- Accepts a new individual into the population
+
+    N::Bool = true # Checks whether the offspring is new or not
+    W::Int32 = -1 # Saves the worst makespan value
+    POS::Int32 = 0 # Saves the position of the worst individual
+
+    for i::Int8 in 1:Psize     
+        if POP[i].Sol == O.Sol
+            N = false
+        end
+
+        Max::Int32 = POP[i].Fit
+        
+        if Max > W 
+            W = Max
+            POS = i
+        end
+    end
+
+    if N == true && O.Fit < W
+        deleteat!(POP, POS)
+        insert!(POP, POS, O)
+    end
+end
+
+function Main_GA(m::Int8, n::Int16, p::Matrix{Int16},
+    S::Vector{Matrix{Int16}}, t::Int)
+    #----- Definition of parameters
+
+    Psize::Int8 = 80
+    Pc::Float16 = 0.5
+    Pm::Float16 = 0.5
+    Pls::Float16 = 1.0 
+    Pressure::Int8 = 10
+    G::Int64 = 0
+    NI::Int64 = 0
+
+    #----- Initialization of the algorithm
+
+    POP = Init_Pop(Psize, m, n, p, S)
+
+    #----- local search on the best initial solution
+
+    B::Int32 = minimum(j -> j.Fit, POP)
+    Bpos::Int8 = 0
+    
+    for i::Int8 in 1:Psize 
+        if POP[i].Fit == B 
+            Bpos = i 
+            break
+        end
+    end
+
+    IMI_LS(Pls, m, p, S, POP[Bpos])
+    
+    #----- Definition of time variables
+    
+    elapsed::Float64 = 0
+    time_limit::Float64 = convert(Float64, n) * convert(Float64, m) * convert(Float64, t)/2000
+    start_time::Float64 = time()
+
+    while elapsed <= time_limit
+        #------ Selection & crossover
+
+        O1, O2, ev = CrossOver(POP, Pc, Pressure, Psize, m, p, S)
+        NI += ev
+
+        #----- Local search
+
+        NI += IMI_LS(Pls, m, p, S, O1)
+        NI += IMI_LS(Pls, m, p, S, O2)
+
+        #----- Mutation 
+
+        NI += Mutation(O1, O2, Pm, m, p, S)
+
+        #----- Acceptance of new individuals in the population
+
+        UpdatePopulation(O1, POP, Psize)
+        UpdatePopulation(O2, POP, Psize)
+
+        #----- Updtate the best solution
+
+        B = minimum(j -> j.Fit, POP)
+
+        G += 1
+        elapsed = time() - start_time
+    end
+    
+    return(B, G, NI)
+end

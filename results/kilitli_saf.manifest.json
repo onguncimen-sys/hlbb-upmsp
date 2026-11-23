@@ -1,0 +1,71 @@
+[
+ {
+  "zaman": "2026-10-19 18:18:44",
+  "git": "7b2eff4a64df0e45ea5b931eda3dc9eb13d25975",
+  "kirli": [
+   " M GELISTIRILMESI_GEREKENLER.md",
+   " M HAKEM_CEVAPLARI.md",
+   " D results/b3_smoke.csv",
+   " M results/feasibility_log.csv",
+   " M results/niche_bench_1core_feaslog.csv",
+   " M results/section_audit.log",
+   "?? ablation_v3.log",
+   "?? b3.log",
+   "?? cp_tekrar.log",
+   "?? devscan.log",
+   "?? kilitli_saf.log",
+   "?? lit_gece/ARAMA_KUTUGU.md",
+   "?? lit_gece/DURUM.md",
+   "?? lit_gece/ELEME_OLCUTU.md",
+   "?? lit_gece/ELLE_INDIRILECEKLER.md",
+   "?? lit_gece/GECE_PLANI.md",
+   "?? lit_gece/KONU.md",
+   "?? lit_gece/KUNYE_DOGRULAMA.md",
+   "?? lit_gece/SABAH_RAPORU.md",
+   "?? lit_gece/SORGU_PLANI.md",
+   "?? lit_gece/aday.csv",
+   "?? lit_gece/araclar/birlestir.py",
+   "?? lit_gece/araclar/oa.py",
+   "?? lit_gece/araclar/sorgular.json",
+   "?? lit_gece/araclar/tam_metin.py",
+   "?? lit_gece/araclar/tara.py",
+   "?? lit_gece/eleme.csv",
+   "?? lit_gece/eleme_claude.csv",
+   "?? lit_gece/erisim.csv",
+   "?? lit_gece/fisler/",
+   "?? lit_gece/gpms_veri/",
+   "?? lit_gece/ham/",
+   "?? lit_gece/txt/",
+   "?? paket6_v6.log",
+   "?? results/ab_degree_smoke.csv",
+   "?? results/ab_machside_smoke.csv",
+   "?? results/ab_small_smoke.csv",
+   "?? results/diag_degguard_iter_smoke.csv",
+   "?? results/diag_degguard_run_smoke.csv",
+   "?? results/diag_trace_machside_iter_smoke.csv"
+  ],
+  "kosucu_sha256": "e1905fae67cab754",
+  "butce": {
+   "stokastik": 200,
+   "CP": 1000
+  },
+  "tohumlar": [
+   0,
+   1,
+   2
+  ],
+  "ortam_istenen": {
+   "DELTAINS_FIX": "1",
+   "JULIA_DEPOT_PATH": "/home/sarp/julia_install/depot"
+  },
+  "nis_ayarlari_bilerek_silinir": [
+   "HGA_DINS",
+   "GA_PM"
+  ],
+  "julia": "/home/sarp/julia_install/julia-1.7.0/bin/julia -t 1",
+  "gorev_listesi_sha256": "5c17b4e2a8b7f9dc",
+  "veri_kimligi": "baslatmada 144 sha256 yeniden hesaplanip dogrulandi",
+  "bekleyen": 936,
+  "islemci": "Intel(R) Core(TM) Ultra 7 155U"
+ }
+]

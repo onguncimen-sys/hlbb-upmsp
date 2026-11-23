@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: >-
+  If you use this code or the companion data, please cite the paper (a
+  submitted manuscript; this file will be updated with the journal citation
+  and the archived release DOI upon publication) and the archived software
+  release.
+title: >-
+  HLBB — a heuristic logic-based Benders decomposition for makespan
+  minimization on constrained unrelated parallel machines
+type: software
+version: 1.0.0
+authors:
+  - family-names: Cimen
+    given-names: Sarp Ongun
+    email: ongun.cimen@ozu.edu.tr
+license: MIT
+repository-code: "https://github.com/onguncimen-sys/hlbb-upmsp"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24198707"
+    description: Companion data record (instances and CP solver logs, CC BY 4.0)
+preferred-citation:
+  type: unpublished
+  authors:
+    - family-names: Cimen
+      given-names: Sarp Ongun
+  title: >-
+    A Heuristic Logic-Based Benders Decomposition for Makespan Minimization
+    on Constrained Unrelated Parallel Machines
+  year: 2026
+  notes: Submitted manuscript; the journal citation will replace this entry upon publication.

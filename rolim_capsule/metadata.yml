@@ -1,0 +1,28 @@
+metadata_version: 1
+name: Metaheuristics for the Unrelated Parallel Machines Scheduling with Setups
+description: This capsule contains our implementation of 12 metaheuristics published
+  between 2011 and 2022 for the Unrelated Parallel Machines Scheduling Problem with
+  setups. The user can compare the number of iterations, the number of objective function
+  evaluations, and the best objective under the same stop criterion.
+tags:
+- ALNS
+- Genetic Algorithm
+- Metaheuristic
+- Simulated Annealing
+- Fixed Set Search
+- Variable Neighborhood Search
+- Salp Swarm Algorithm
+- Whale Optimization Algorithm
+- Firefly algorithm
+- Artificial Bee Colony
+- Scheduling
+- Unrelated Parallel Machines
+- Discrete Optimization
+- Julia
+authors:
+- name: Gustavo Alencar Rolim
+  affiliations:
+  - name: University of São Paulo
+- name: Marcelo Seido Nagano
+  affiliations:
+  - name: University of São Paulo

@@ -1,0 +1,13 @@
+# Uretilen / indirilen / buyuk seyler depoya girmez.
+__pycache__/
+*.pyc
+new_dataset_*/          # instance'lar Zenodo'da (bkz. instances/README.md)
+valladapure/            # Vallada'nin verisi: soa.iti.es
+LKH-3.0.7/              # dis arac: webhotel4.ruc.dk/~keld/research/LKH-3/
+ATSP/
+TOUR/
+*.tour
+*.par
+.niche_bin/             # kapsul koprusunun ikili onbellegi
+paper/                  # analiz betiklerinin cikti klasoru
+*.log
